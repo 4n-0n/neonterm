@@ -1,0 +1,11 @@
+# build
+build/
+b/
+packaging/out/
+*.AppImage
+
+# oggetti e artefatti
+*.o
+*.a
+*.so
+__pycache__/

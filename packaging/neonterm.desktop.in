@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=neonterm
+GenericName=Terminal
+Comment=Terminale con grafica disegnata a mano: PTY reale, VT100/ANSI, bloom neon
+Exec=@BINDIR@/neonterm
+TryExec=@BINDIR@/neonterm
+Icon=neonterm
+Terminal=false
+Categories=System;TerminalEmulator;
+Keywords=terminal;shell;console;pty;vt100;ansi;
+StartupNotify=true
+StartupWMClass=neonterm
