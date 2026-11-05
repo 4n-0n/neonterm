@@ -45,17 +45,24 @@ export EXTRA_QT_PLUGINS=multimedia
 # Niente driver grafici, audio di sistema o libc nel bundle: quei pezzi devono
 # essere quelli della macchina, altrimenti GL/EGL e PipeWire/Pulse si rompono
 # a seconda della distro.
-install -m 644 /src/packaging/neonterm.desktop.in "$AppDir.desktop" 2>/dev/null || true
-sed -i 's|@BINDIR@/neonterm|neonterm|g' "$AppDir.desktop" 2>/dev/null || true
+mkdir -p "$AppDir"
+# Il desktop file in AppDir deve chiamarsi come l'app (appimagetool lo usa come
+# id), e l'Exec assoluto dell'installazione non ha senso dentro il bundle.
+sed 's|@BINDIR@/neonterm|neonterm|g' /src/packaging/neonterm.desktop.in > /work/neonterm.desktop
 cp /src/assets/icons/neonterm-256.png /work/neonterm.png
 
 linuxdeploy --appdir "$AppDir" \
     --executable src/b/neonterm \
     --executable src/b/show \
-    --desktop-file "$AppDir.desktop" \
+    --desktop-file /work/neonterm.desktop \
     --icon-file /work/neonterm.png \
     --plugin qt \
     --exclude-library "libpulse*;libpipewire*;libasound*;libGL*;libEGL*;libdrm*;libgbm*;libvulkan*;libGLX*;libOpenGL*"
+
+# Solo il backend ffmpeg di QtMultimedia: quello gstreamer, senza i plugin gst
+# del sistema, non riprodurrebbe niente e tirerebbe dentro ~30 MB di librerie.
+rm -f "$AppDir"/usr/plugins/multimedia/libgstreamermediaplugin.so
+rm -f "$AppDir"/usr/lib/libgst*.so* "$AppDir"/usr/lib/libgstreamer*.so* "$AppDir"/usr/lib/liborc*.so*
 
 # linuxdeploy-plugin-qt deploya solo il plugin xcb: la piattaforma Wayland si
 # aggiunge a mano (Qt 6.4 la porta in pacchetti separati). Senza, su KDE/GNOME
@@ -73,6 +80,11 @@ done
 
 # AppRun: librerie e plugin dal bundle, e `show` in PATH (il terminale lo lancia
 # per nome). $PATH resta quello dell'utente.
+#
+# linuxdeploy lascia AppRun come SYMLINK a usr/bin/<eseguibile>: scrivendoci sopra
+# si sovrascrive il binario con lo script e il bundle parte con "usr/bin/usr/bin/…
+# not found". Va tolto prima.
+rm -f "$AppDir/AppRun"
 cat > "$AppDir/AppRun" <<'APPRUN'
 #!/bin/sh
 HERE=$(dirname "$(readlink -f "$0")")
@@ -83,11 +95,14 @@ export PATH="$HERE/usr/bin:$PATH"
 exec "$HERE/usr/bin/neonterm" "$@"
 APPRUN
 chmod +x "$AppDir/AppRun"
+[ ! -L "$AppDir/AppRun" ] || { echo "AppRun e' ancora un symlink"; exit 1; }
+file "$AppDir/usr/bin/neonterm" | grep -q ELF || { echo "neonterm non e' un ELF"; exit 1; }
 
 echo "--- dipendenze non incapsulate (attese: libc, libGL*, libX11, fontconfig...):"
-for f in "$AppDir"/usr/bin/* "$AppDir"/usr/lib/*.so* "$AppDir"/usr/plugins/*/*.so; do
+deps=$(for f in "$AppDir"/usr/bin/* "$AppDir"/usr/lib/*.so* "$AppDir"/usr/plugins/*/*.so; do
     objdump -p "$f" 2>/dev/null | awk '/NEEDED/{print $2}'
-done | sort -u | while read -r l; do [ -e "$AppDir/usr/lib/$l" ] || echo "  $l"; done | tr '\n' ' '
+done | sort -u || true)
+for l in $deps; do [ -e "$AppDir/usr/lib/$l" ] || printf ' %s' "$l"; done
 echo
 
 # --- 4. bundle ---------------------------------------------------------------

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>neonterm — terminale Linux con griglia OpenGL</title>
+<meta name="description" content="Terminale per Linux in C++20 e Qt 6: griglia OpenGL 3.3, parser VT100/ANSI, scrollback, schede, immagini e video inline. AppImage pronta, licenza MIT.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="https://cybernet.fun/neonterm/">
+<meta name="theme-color" content="#06080a">
+<meta name="color-scheme" content="dark">
+<meta property="og:site_name" content="cybernet">
+<meta property="og:locale" content="it_IT">
+<meta property="og:type" content="website">
+<meta property="og:title" content="neonterm — terminale Linux con griglia OpenGL">
+<meta property="og:description" content="Un terminale che disegna ogni glifo da sé: griglia OpenGL 3.3, pty reale, VT100/ANSI, schede, immagini e video dentro lo schermo.">
+<meta property="og:url" content="https://cybernet.fun/neonterm/">
+<meta property="og:image" content="https://cybernet.fun/neonterm/img/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="neonterm — terminale Linux con griglia OpenGL">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="neonterm — terminale Linux con griglia OpenGL">
+<meta name="twitter:description" content="Griglia OpenGL 3.3, pty reale, VT100/ANSI, schede, immagini e video inline. AppImage per Linux, MIT.">
+<meta name="twitter:image" content="https://cybernet.fun/neonterm/img/og.png">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://cybernet.fun/neonterm/#app",
+      "name": "neonterm",
+      "alternateName": "neonterm terminal",
+      "description": "Terminale per Linux scritto in C++20 con Qt 6: la griglia dei caratteri è renderizzata da OpenGL 3.3 core con istanze e atlas di glifi, mentre testata, schede e barra di stato sono disegnate a mano. Sotto c'è un pty reale con parser VT100/ANSI incrementale, scrollback, schede e media inline.",
+      "url": "https://cybernet.fun/neonterm/",
+      "applicationCategory": "UtilitiesApplication",
+      "applicationSubCategory": "Terminale",
+      "operatingSystem": "Linux (Wayland, X11)",
+      "softwareVersion": "0.1.0",
+      "downloadUrl": "https://cybernet.fun/neonterm/neonterm-0.1.0-x86_64.AppImage",
+      "fileSize": 75438584,
+      "inLanguage": "it",
+      "isAccessibleForFree": true,
+      "license": "https://opensource.org/licenses/MIT",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR",
+        "availability": "https://schema.org/InStock"
+      },
+      "screenshot": [
+        "https://cybernet.fun/neonterm/img/neonterm-demo-0.1.0.webp",
+        "https://cybernet.fun/neonterm/img/neonterm-shell-0.1.0.webp",
+        "https://cybernet.fun/neonterm/img/neonterm-stui-0.1.0.webp"
+      ],
+      "publisher": {
+        "@type": "Organization",
+        "@id": "https://cybernet.fun/#org",
+        "name": "cybernet"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://cybernet.fun/neonterm/#crumbs",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "cybernet",
+          "item": "https://cybernet.fun/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "neonterm",
+          "item": "https://cybernet.fun/neonterm/"
+        }
+      ]
+    }
+  ]
+}
+</script>
+<style>
+:root {
+  --bg: #06080a;
+  --panel: #0b1013;
+  --line: #1b242b;
+  --ink: #dceeff;
+  --dim: #7a96aa;
+  --accent: #3ee6d0;
+  --mono: ui-monospace, "DejaVu Sans Mono", "SF Mono", Menlo, monospace;
+  --sans: -apple-system, "Segoe UI", Roboto, "DejaVu Sans", sans-serif;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.65 var(--sans); -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.wrap { width: min(1080px, 92vw); margin: 0 auto; }
+.bar {
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(6, 8, 10, .92); border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(6px);
+}
+.bar .wrap { display: flex; align-items: center; justify-content: space-between; height: 62px; }
+.bar .left { display: flex; align-items: center; gap: 18px; }
+.back { color: var(--dim); font-family: var(--mono); font-size: 13px; }
+.brand { font-family: var(--mono); font-weight: 700; letter-spacing: .16em; font-size: 15px; }
+.brand b { color: var(--accent); }
+.tag { font-family: var(--mono); font-size: 12px; color: var(--dim); letter-spacing: .04em; }
+main { padding: 64px 0 96px; }
+.hero { max-width: 800px; }
+.kicker {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--accent); margin: 0 0 18px;
+}
+h1 { font-size: clamp(34px, 5.4vw, 58px); line-height: 1.06; margin: 0 0 22px; letter-spacing: -.02em; }
+h1 span { color: var(--accent); }
+.lede { font-size: 18px; color: #b9cbd9; margin: 0 0 30px; max-width: 70ch; }
+.cta { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 34px; }
+.btn {
+  font-family: var(--mono); font-size: 14px; padding: 13px 20px;
+  border: 1px solid var(--accent); color: #04121c; background: var(--accent);
+  letter-spacing: .02em;
+}
+.btn:hover { text-decoration: none; filter: brightness(1.12); }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn.ghost:hover { border-color: var(--accent); }
+.facts { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 8px; }
+.facts li { font-family: var(--mono); font-size: 13px; color: var(--dim); }
+.facts b { color: var(--ink); font-weight: 400; }
+section { margin-top: 72px; }
+h2 {
+  font-family: var(--mono); font-size: 13px; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--dim); font-weight: 400;
+  border-bottom: 1px solid var(--line); padding-bottom: 12px; margin: 0 0 28px;
+}
+h3 { font-size: 18px; margin: 0 0 8px; }
+p { margin: 0 0 16px; color: #b9cbd9; }
+.grid { display: grid; gap: 18px; }
+.grid.three { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.card { border: 1px solid var(--line); background: var(--panel); padding: 20px; }
+.card .num {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .14em;
+  color: var(--accent); margin-bottom: 10px;
+}
+.card p { margin: 0; font-size: 15px; }
+figure { margin: 0 0 26px; }
+figure img { width: 100%; height: auto; display: block; border: 1px solid var(--line); }
+figcaption { font-family: var(--mono); font-size: 12px; color: var(--dim); padding-top: 10px; }
+figcaption b { color: var(--ink); font-weight: 400; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); }
+th {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--dim); font-weight: 400;
+}
+td.n, td.sha { font-family: var(--mono); font-size: 13px; color: var(--dim); }
+td.sha { white-space: nowrap; }
+kbd {
+  font-family: var(--mono); font-size: 12px; border: 1px solid var(--line);
+  background: #0f1519; padding: 2px 6px; color: var(--ink); white-space: nowrap;
+}
+.installa { display: grid; gap: 22px; }
+.pack { border: 1px solid var(--line); background: var(--panel); padding: 20px; }
+.pack header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.pack h3 { margin: 0 0 4px; }
+.pack .size { font-family: var(--mono); font-size: 12px; color: var(--dim); }
+p.hint { font-size: 14px; color: var(--dim); margin: 3px 0 14px; }
+pre {
+  font-family: var(--mono); font-size: 13px; line-height: 1.6;
+  background: #0a0f12; border: 1px solid var(--line); border-left: 2px solid var(--accent);
+  padding: 14px 16px; overflow-x: auto; margin: 0 0 14px; color: #cfdde8;
+}
+pre .c { color: #5e7383; }
+code { font-family: var(--mono); font-size: 13px; color: #a9bfcd; }
+.note {
+  border: 1px solid var(--line); background: var(--panel); padding: 18px 20px;
+  font-size: 14px; color: #a9bfcd;
+}
+.note b { color: var(--ink); }
+.note ul { margin: 10px 0 0; padding-left: 20px; }
+.note li { margin-bottom: 8px; }
+footer {
+  border-top: 1px solid var(--line); margin-top: 84px; padding: 26px 0 40px;
+  font-family: var(--mono); font-size: 12px; color: var(--dim);
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+}
+@media (max-width: 640px) {
+  .tag { display: none; }
+  main { padding-top: 40px; }
+  .facts li { font-size: 12px; }
+  th, td { padding: 8px 4px; }
+}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="left">
+      <a class="back" href="/" title="torna a cybernet.fun">← cybernet.fun</a>
+      <div class="brand">NEONTERM<b>//</b>VT</div>
+    </div>
+    <div class="tag">v0.1.0 &nbsp;·&nbsp; C++<i>20</i> &nbsp;·&nbsp; Qt 6 &nbsp;·&nbsp; AppImage</div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="hero">
+    <p class="kicker">Terminale · C++20 · Qt 6 · OpenGL 3.3 · MIT</p>
+    <h1>Ogni glifo lo disegna lui.<br><span>Sotto c'è un terminale vero.</span></h1>
+    <p class="lede">
+      neonterm non usa il widget di testo di sistema: la griglia dei caratteri è
+      renderizzata da OpenGL 3.3 core con quad istanziati e un atlas di glifi, la
+      testata e la barra di stato sono disegnate a mano. Sotto la grafica ci sono un
+      pty vero (<code>forkpty</code>), un parser VT100/ANSI incrementale e uno
+      scrollback di 5000 righe. Con <code>show</code> le immagini, i video e i PDF
+      finiscono dentro la sessione, ancorati alle righe del testo.
+    </p>
+    <div class="cta">
+      <a class="btn" href="neonterm-0.1.0-x86_64.AppImage" download>Scarica l'AppImage ↓</a>
+      <a class="btn ghost" href="#installa">Come si installa</a>
+      <a class="btn ghost" href="#tasti">Tasti e comandi</a>
+    </div>
+    <ul class="facts">
+      <li>versione <b>0.1.0</b> · licenza <b>MIT</b> · sorgente in un repository privato</li>
+      <li>AppImage x86_64: <b>72 MB</b> · nessuna installazione, Qt dentro</li>
+      <li>glibc <b>2.39+</b> — Ubuntu 24.04, Debian 13, Fedora 40 e successivi</li>
+      <li>build verificata con <b>5 suite di test</b> (ctest): parser, pty reale, rendering, font, media</li>
+    </ul>
+  </div>
+
+  <section id="come-funziona">
+    <h2>Come funziona</h2>
+    <div class="grid three">
+      <article class="card">
+        <div class="num">01 / LA GRIGLIA</div>
+        <h3>Pixel fisici interi, testo nitido</h3>
+        <p>La griglia è ancorata a pixel fisici interi: a scala frazionaria (1,4x) un
+        passo frazionario faceva ricampionare ogni glifo, cioè il «testo sfocato» dei
+        terminali che disegnano il testo in un'immagine. Sfondi, cursore, blocchi e
+        braille sono quad istanziati; le scanline sono un post shader spegnibile.</p>
+      </article>
+      <article class="card">
+        <div class="num">02 / IL PARSER</div>
+        <h3>Un terminale, non un'imitazione</h3>
+        <p>Macchina a stati CSI/OSC/SGR con UTF-8 e doppia larghezza, 16/256/24-bit,
+        schermo alternato, scroll region, bracketed paste, mouse SGR, IME. Il pty è
+        <code>forkpty</code> con master non bloccante e <code>TIOCSWINSZ</code>: un
+        resize arriva alla shell come un <code>stty size</code> vero.</p>
+      </article>
+      <article class="card">
+        <div class="num">03 / I MEDIA</div>
+        <h3>Immagini e video dentro lo schermo</h3>
+        <p><code>show foto.jpg</code> misura il file, chiede al terminale di piazzarlo
+        alla riga corrente (<code>OSC 7770</code>) e stampa le righe che gli riservano
+        lo spazio. Il file non viene trasferito: lo decodifica il terminale, in locale.
+        Il media scorre con il testo e sparisce quando esce dallo scrollback.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="schermate">
+    <h2>Com'è fatto</h2>
+    <figure id="neonterm-demo">
+      <img src="img/neonterm-demo-0.1.0.webp" width="1400" height="880" loading="lazy" decoding="async"
+           alt="neonterm con la schermata --demo: il logo a blocchi colorati, la griglia di caratteri 132x36, le palette ANSI 16/256/24-bit e le righe di log del parser.">
+      <figcaption><b>La schermata --demo</b> — la stessa cosa che disegna il terminale: palette ANSI, braille, blocchi, righe di log del parser, testata con tab e barra di stato con pid, griglia, fps e badge degli effetti.</figcaption>
+    </figure>
+    <figure id="neonterm-shell">
+      <img src="img/neonterm-shell-0.1.0.webp" width="1400" height="880" loading="lazy" decoding="async"
+           alt="neonterm mentre esegue fastfetch: l'output colorato con le righe del sistema, sopra la riga del prompt e la barra dei colori ANSI.">
+      <figcaption><b>Uso normale</b> — l'output colorato di <code>fastfetch</code> dentro neonterm: colore 24-bit, il prompt, la barra dei colori ANSI.</figcaption>
+    </figure>
+    <figure id="neonterm-stui">
+      <img src="img/neonterm-stui-0.1.0.webp" width="1400" height="880" loading="lazy" decoding="async"
+           alt="La console LCARS di neonterm: barre arancione, lilla e blu con angoli tondi, la voce COMPUTER con SISTEMI, RETE, PROCESSI, ARCHIVIO, DIAGNOSTICA e USCITA, e in basso i KPI live.">
+      <figcaption><b>STUI, la console LCARS</b> — lo switch in alto a destra (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd>) copre il terminale con un albero di pannelli di sistema. Il terminale resta vivo sotto.</figcaption>
+    </figure>
+  </section>
+
+  <section id="tasti">
+    <h2>Comandi</h2>
+    <table>
+      <thead>
+        <tr><th>Tasto</th><th>Cosa fa</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> · <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>W</kbd></td><td>nuova scheda · chiude la scheda</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>Tab</kbd> · <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Tab</kbd></td><td>scheda successiva / precedente</td></tr>
+        <tr><td><kbd>Alt</kbd>+<kbd>1</kbd>…<kbd>9</kbd></td><td>vai alla scheda</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd> · <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd></td><td>copia · incolla</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>+</kbd> <kbd>Ctrl</kbd>+<kbd>−</kbd> <kbd>Ctrl</kbd>+<kbd>0</kbd></td><td>zoom del testo · reset</td></tr>
+        <tr><td><kbd>F2</kbd></td><td>scanline e vignettatura on/off</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></td><td>console STUI (LCARS)</td></tr>
+        <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>X</kbd></td><td>chiude tutti i blocchi media</td></tr>
+        <tr><td><kbd>F11</kbd> / <kbd>Esc</kbd></td><td>schermo intero / esci</td></tr>
+        <tr><td>rotella · tasto centrale · doppio clic</td><td>scrollback · incolla · seleziona la parola</td></tr>
+        <tr><td>tasto destro</td><td>menu: copia/incolla, schede, zoom, effetti</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="show">
+    <h2>show: media nel terminale</h2>
+<pre><span class="c"># l'eseguibile show viaggia dentro l'AppImage e sta nel PATH della sessione</span>
+show foto.jpg            <span class="c"># immagine nel viewport</span>
+show film.mp4            <span class="c"># video con audio, frame live</span>
+show canzone.mp3         <span class="c"># player con waveform e avanzamento</span>
+show documento.pdf       <span class="c"># prima pagina (show -p 3 per un'altra)</span>
+show note.txt            <span class="c"># testo nel buffer, come cat</span>
+show --stop              <span class="c"># ferma i media in riproduzione</span>
+show -c 60 foto.jpg      <span class="c"># larghezza in celle</span></pre>
+    <p>
+      Video e waveform passano da <code>ffmpeg</code>/<code>ffprobe</code>, i PDF da
+      <code>pdftoppm</code>: se gli strumenti mancano il blocco mostra il motivo invece
+      di restare vuoto. Sotto ogni video c'è la barra con play/pausa, avanzamento
+      trascinabile, tempo e mute; l'audio usa la stessa barra con la copertina.
+    </p>
+  </section>
+
+  <section id="installa">
+    <h2>Installazione</h2>
+    <div class="installa">
+      <div class="pack">
+        <header>
+          <h3>AppImage</h3>
+          <span class="size">72 MB</span>
+        </header>
+        <p class="hint">Un file eseguibile con Qt 6 dentro: niente installazione, niente dipendenze da cercare. Parte da Ubuntu 24.04 / Debian 13 / Fedora 40 in su (glibc 2.39).</p>
+<pre><span class="c"># dalla cartella dove l'hai scaricato</span>
+chmod +x neonterm-0.1.0-x86_64.AppImage
+./neonterm-0.1.0-x86_64.AppImage
+
+<span class="c"># per averlo nel menu: integrazione AppImage opzionale</span>
+./neonterm-0.1.0-x86_64.AppImage --appimage-extract
+<span class="c"># dentro squashfs-root c'è neonterm.desktop e l'icona</span></pre>
+        <p class="hint">sha256 <code>56927d8925c155e93f2184d1fe7c44a067b90d7247f2eac715099c6dcb11c695</code></p>
+      </div>
+
+      <div class="pack">
+        <header>
+          <h3>Dal sorgente</h3>
+          <span class="size">C++20 · Qt 6.2+</span>
+        </header>
+        <p class="hint">Servono CMake ≥ 3.21, un compilatore C++20 e i moduli Qt 6 Core, Gui, Widgets, OpenGL, OpenGLWidgets, Multimedia (su Debian/Ubuntu: <code>qt6-base-dev qt6-multimedia-dev libqt6opengl6-dev</code>).</p>
+<pre>cmake -B build -S .
+cmake --build build -j"$(nproc)"
+ctest --test-dir build --output-on-failure
+sudo cmake --install build --prefix /usr/local</pre>
+        <p class="hint">Il sorgente è in un repository privato: nessun URL da clonare, i comandi valgono per l'albero che hai in mano.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="download">
+    <h2>File</h2>
+    <table>
+      <thead>
+        <tr><th>File</th><th>Formato</th><th>Peso</th><th>sha256</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="neonterm-0.1.0-x86_64.AppImage" download>neonterm-0.1.0-x86_64.AppImage</a></td>
+          <td>AppImage x86_64</td>
+          <td class="n">72 MB</td>
+          <td class="sha">56927d8925c155e9…</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="note">
+    <h2>Da sapere</h2>
+    <div class="note">
+      <b>Limiti veri, detti prima.</b>
+      <ul>
+        <li>Il contenuto <b>non rifluisce</b> quando si ridimensiona la finestra: le righe
+        più lunghe vengono tagliate. È la scelta più semplice e prevedibile.</li>
+        <li>Il font interno (polilinee, <code>--stroke-font</code>) a 14 px è poco leggibile:
+        resta un esperimento, il default è il monospace di sistema in un atlas di glifi.</li>
+        <li>Niente <b>sixel/kitty</b>, niente legature dei font, <b>niente split pane</b>:
+        un processo per scheda.</li>
+        <li><b>blink</b> (SGR 5) non anima il testo; il cursore invece lampeggia.</li>
+        <li>Il <b>media non è cliccabile né selezionabile</b>: è un'immagine sopra la griglia,
+        i suoi controlli sono quad disegnati dal terminale.</li>
+        <li><code>OSC 7770</code> può essere emesso da qualunque processo che scriva sul tty —
+        lo stesso modello di sixel e kitty: il processo potrebbe già leggere quel file da solo.</li>
+        <li>L'<b>AppImage non è firmata</b>: qui sopra c'è lo sha256 per confronto. Non è su
+        Flathub, non c'è un <code>.deb</code>.</li>
+        <li>Provato su <b>KDE Plasma 6 / Wayland</b> a 1,4x di scala; su X11 lo stesso codice
+        gira (il renderer CPU con <code>--paint</code> è il riferimento quando OpenGL manca).</li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<footer class="wrap">
+  <span>cybernet.fun · neonterm 0.1.0</span>
+  <span>MIT · codice in un repository privato · <a href="/">altri progetti</a></span>
+</footer>
+
+<script src="/assets/px.js" defer></script>
+</body>
+</html>
