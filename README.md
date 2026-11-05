@@ -26,19 +26,20 @@ src/ui/       TermSurface stato condiviso: sessione, griglia, selezione, tasti
               Demo        schermata ANSI per --demo e per i test
 ```
 
-## Scarica
+## Dove sta
 
-AppImage autoconsistente per x86_64, senza installazione:
+Sorgente: <https://github.com/4n-0n/neonterm> (MIT).
+Pagina del progetto, con screenshots e istruzioni: <https://cybernet.fun/neonterm/>.
+
+Si compila dal sorgente, non ci sono pacchetti pronti:
 
 ```sh
-curl -LO https://cybernet.fun/neonterm/neonterm-0.1.0-x86_64.AppImage
-chmod +x neonterm-0.1.0-x86_64.AppImage
-./neonterm-0.1.0-x86_64.AppImage
+git clone https://github.com/4n-0n/neonterm.git
+cd neonterm
+cmake -B build -S . && cmake --build build -j"$(nproc)"
+ctest --test-dir build --output-on-failure
+sudo cmake --install build --prefix /usr/local
 ```
-
-Il bundle è compilato su Ubuntu 24.04, quindi la glibc minima è la 2.39
-(Ubuntu 24.04, Debian 13, Fedora 40 e successivi). Pagina del progetto:
-<https://cybernet.fun/neonterm/>.
 
 ![neonterm con la schermata --demo](docs/screenshot-demo.png)
 

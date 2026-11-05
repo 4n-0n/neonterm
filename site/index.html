@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>neonterm — terminale Linux con griglia OpenGL</title>
-<meta name="description" content="Terminale per Linux in C++20 e Qt 6: griglia OpenGL 3.3, parser VT100/ANSI, scrollback, schede, immagini e video inline. AppImage pronta, licenza MIT.">
+<meta name="description" content="Terminale per Linux in C++20 e Qt 6: griglia OpenGL 3.3, parser VT100/ANSI, scrollback, schede, immagini e video inline. MIT, sorgente su GitHub.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <link rel="canonical" href="https://cybernet.fun/neonterm/">
 <meta name="theme-color" content="#06080a">
@@ -21,7 +21,7 @@
 <meta property="og:image:alt" content="neonterm — terminale Linux con griglia OpenGL">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="neonterm — terminale Linux con griglia OpenGL">
-<meta name="twitter:description" content="Griglia OpenGL 3.3, pty reale, VT100/ANSI, schede, immagini e video inline. AppImage per Linux, MIT.">
+<meta name="twitter:description" content="Griglia OpenGL 3.3, pty reale, VT100/ANSI, schede, immagini e video inline. C++20 e Qt 6, MIT.">
 <meta name="twitter:image" content="https://cybernet.fun/neonterm/img/og.png">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <script type="application/ld+json">
@@ -39,11 +39,10 @@
       "applicationSubCategory": "Terminale",
       "operatingSystem": "Linux (Wayland, X11)",
       "softwareVersion": "0.1.0",
-      "downloadUrl": "https://cybernet.fun/neonterm/neonterm-0.1.0-x86_64.AppImage",
-      "fileSize": 75405816,
       "inLanguage": "it",
       "isAccessibleForFree": true,
       "license": "https://opensource.org/licenses/MIT",
+      "codeRepository": "https://github.com/4n-0n/neonterm",
       "offers": {
         "@type": "Offer",
         "price": "0",
@@ -207,7 +206,7 @@ footer {
       <a class="back" href="/" title="torna a cybernet.fun">← cybernet.fun</a>
       <div class="brand">NEONTERM<b>//</b>VT</div>
     </div>
-    <div class="tag">v0.1.0 &nbsp;·&nbsp; C++<i>20</i> &nbsp;·&nbsp; Qt 6 &nbsp;·&nbsp; AppImage</div>
+    <div class="tag">v0.1.0 &nbsp;·&nbsp; C++<i>20</i> &nbsp;·&nbsp; Qt 6 &nbsp;·&nbsp; MIT</div>
   </div>
 </header>
 
@@ -225,14 +224,13 @@ footer {
       finiscono dentro la sessione, ancorati alle righe del testo.
     </p>
     <div class="cta">
-      <a class="btn" href="neonterm-0.1.0-x86_64.AppImage" download>Scarica l'AppImage ↓</a>
-      <a class="btn ghost" href="#installa">Come si installa</a>
+      <a class="btn" href="https://github.com/4n-0n/neonterm" target="_blank" rel="noopener">Codice su GitHub ↗</a>
+      <a class="btn ghost" href="#installa">Come si compila</a>
       <a class="btn ghost" href="#tasti">Tasti e comandi</a>
     </div>
     <ul class="facts">
-      <li>versione <b>0.1.0</b> · licenza <b>MIT</b> · sorgente in un repository privato</li>
-      <li>AppImage x86_64: <b>72 MB</b> · nessuna installazione, Qt dentro</li>
-      <li>glibc <b>2.39+</b> — Ubuntu 24.04, Debian 13, Fedora 40 e successivi</li>
+      <li>versione <b>0.1.0</b> · licenza <b>MIT</b> · <a href="https://github.com/4n-0n/neonterm">sorgente su GitHub</a></li>
+      <li>compila con <b>CMake 3.21+</b> e <b>Qt 6.2+</b> (Core, Gui, Widgets, OpenGL, Multimedia)</li>
       <li>build verificata con <b>5 suite di test</b> (ctest): parser, pty reale, rendering, font, media</li>
     </ul>
   </div>
@@ -310,7 +308,7 @@ footer {
 
   <section id="show">
     <h2>show: media nel terminale</h2>
-<pre><span class="c"># l'eseguibile show viaggia dentro l'AppImage e sta nel PATH della sessione</span>
+<pre><span class="c"># show si installa insieme al terminale: entrambi finiscono in $PATH</span>
 show foto.jpg            <span class="c"># immagine nel viewport</span>
 show film.mp4            <span class="c"># video con audio, frame live</span>
 show canzone.mp3         <span class="c"># player con waveform e avanzamento</span>
@@ -331,50 +329,19 @@ show -c 60 foto.jpg      <span class="c"># larghezza in celle</span></pre>
     <div class="installa">
       <div class="pack">
         <header>
-          <h3>AppImage</h3>
-          <span class="size">72 MB</span>
-        </header>
-        <p class="hint">Un file eseguibile con Qt 6 dentro: niente installazione, niente dipendenze da cercare. Parte da Ubuntu 24.04 / Debian 13 / Fedora 40 in su (glibc 2.39).</p>
-<pre><span class="c"># dalla cartella dove l'hai scaricato</span>
-chmod +x neonterm-0.1.0-x86_64.AppImage
-./neonterm-0.1.0-x86_64.AppImage
-
-<span class="c"># per averlo nel menu: integrazione AppImage opzionale</span>
-./neonterm-0.1.0-x86_64.AppImage --appimage-extract
-<span class="c"># dentro squashfs-root c'è neonterm.desktop e l'icona</span></pre>
-        <p class="hint">sha256 <code>806f1cb5feeed43ad659a8ade13beeeb6f5211c19c0ce1c3bbde1b0043c86fde</code></p>
-      </div>
-
-      <div class="pack">
-        <header>
           <h3>Dal sorgente</h3>
           <span class="size">C++20 · Qt 6.2+</span>
         </header>
         <p class="hint">Servono CMake ≥ 3.21, un compilatore C++20 e i moduli Qt 6 Core, Gui, Widgets, OpenGL, OpenGLWidgets, Multimedia (su Debian/Ubuntu: <code>qt6-base-dev qt6-multimedia-dev libqt6opengl6-dev</code>).</p>
-<pre>cmake -B build -S .
+<pre>git clone https://github.com/4n-0n/neonterm.git
+cd neonterm
+cmake -B build -S .
 cmake --build build -j"$(nproc)"
 ctest --test-dir build --output-on-failure
 sudo cmake --install build --prefix /usr/local</pre>
-        <p class="hint">Il sorgente è in un repository privato: nessun URL da clonare, i comandi valgono per l'albero che hai in mano.</p>
+        <p class="hint">L'installazione mette <code>neonterm</code> e <code>show</code> in <code>/usr/local/bin</code>, più la voce di menu e le icone: dopo <code>kbuildsycoca6 --noincremental</code> compare fra le applicazioni.</p>
       </div>
     </div>
-  </section>
-
-  <section id="download">
-    <h2>File</h2>
-    <table>
-      <thead>
-        <tr><th>File</th><th>Formato</th><th>Peso</th><th>sha256</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><a href="neonterm-0.1.0-x86_64.AppImage" download>neonterm-0.1.0-x86_64.AppImage</a></td>
-          <td>AppImage x86_64</td>
-          <td class="n">72 MB</td>
-          <td class="sha">806f1cb5feeed43a…</td>
-        </tr>
-      </tbody>
-    </table>
   </section>
 
   <section id="note">
@@ -393,8 +360,8 @@ sudo cmake --install build --prefix /usr/local</pre>
         i suoi controlli sono quad disegnati dal terminale.</li>
         <li><code>OSC 7770</code> può essere emesso da qualunque processo che scriva sul tty —
         lo stesso modello di sixel e kitty: il processo potrebbe già leggere quel file da solo.</li>
-        <li>L'<b>AppImage non è firmata</b>: qui sopra c'è lo sha256 per confronto. Non è su
-        Flathub, non c'è un <code>.deb</code>.</li>
+        <li>Non ci sono pacchetti pronti (<b>niente .deb, AppImage o flatpak</b>): si compila
+        dal sorgente, e le dipendenze sono quelle Qt 6 della tua distro.</li>
         <li>Provato su <b>KDE Plasma 6 / Wayland</b> a 1,4x di scala; su X11 lo stesso codice
         gira (il renderer CPU con <code>--paint</code> è il riferimento quando OpenGL manca).</li>
       </ul>
@@ -405,7 +372,7 @@ sudo cmake --install build --prefix /usr/local</pre>
 
 <footer class="wrap">
   <span>cybernet.fun · neonterm 0.1.0</span>
-  <span>MIT · codice in un repository privato · <a href="/">altri progetti</a></span>
+  <span>MIT · <a href="https://github.com/4n-0n/neonterm">sorgente su GitHub</a> · <a href="/">altri progetti</a></span>
 </footer>
 
 <script src="/assets/px.js" defer></script>
