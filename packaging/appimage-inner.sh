@@ -57,7 +57,7 @@ linuxdeploy --appdir "$AppDir" \
     --desktop-file /work/neonterm.desktop \
     --icon-file /work/neonterm.png \
     --plugin qt \
-    --exclude-library "libpulse*;libpipewire*;libasound*;libGL*;libEGL*;libdrm*;libgbm*;libvulkan*;libGLX*;libOpenGL*"
+    --exclude-library "libpulse*;libpipewire*;libasound*;libGL*;libEGL*;libdrm*;libgbm*;libvulkan*;libGLX*;libOpenGL*;libwayland*"
 
 # Solo il backend ffmpeg di QtMultimedia: quello gstreamer, senza i plugin gst
 # del sistema, non riprodurrebbe niente e tirerebbe dentro ~30 MB di librerie.
@@ -74,9 +74,15 @@ for p in wayland-shell-integration wayland-decoration-client wayland-graphics-in
     [ -d "$qt_plugins/$p" ] && cp -r "$qt_plugins/$p" "$AppDir"/usr/plugins/
 done
 for l in libQt6WaylandClient.so.6 libQt6WaylandEglClientHwIntegration.so.6 \
-         libQt6WlShellIntegration.so.6 libwayland-client.so.0; do
+         libQt6WlShellIntegration.so.6; do
     cp -L "$u/$l" "$AppDir"/usr/lib/ 2>/dev/null || true
 done
+# libwayland-client/egl/cursor NON si incapsulano: il driver EGL della macchina
+# (libEGL_mesa o nvidia) linka la libwayland di sistema, e due copie nello stesso
+# processo fanno fallire l'EGL integration ("qt.qpa.wayland: EGL not available",
+# poi QOpenGLWidget senza contesto). Devono venire dal sistema, come libGL.
+rm -f "$AppDir"/usr/lib/libwayland-client.so.0 "$AppDir"/usr/lib/libwayland-cursor.so.0 \
+      "$AppDir"/usr/lib/libwayland-egl.so.1
 
 # AppRun: librerie e plugin dal bundle, e `show` in PATH (il terminale lo lancia
 # per nome). $PATH resta quello dell'utente.
